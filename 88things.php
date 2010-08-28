@@ -32,26 +32,11 @@
 		}
 
 		public function init() {
-			// Using get_header because init gets called even when using admin
-			add_action('get_header', array($this, 'beforePage'), PHP_INT_MAX);
-			add_action('wp_footer', array($this, 'afterPage'), PHP_INT_MAX);
+			$cache88 = new Cache88();
+			$cache88->init();
 
 			$cdn88 = new Cdn88();
 			$cdn88->init();
-		}
-
-		public function beforePage() {
-			$this->display($_SERVER['REQUEST_URI']);
-			$this->display('starting now', 90);
-			ob_start();
-		}
-
-		public function afterPage() {
-			$page = ob_get_contents();
-			ob_end_clean();
-			$this->display('ending now', 90);
-
-			echo $page;
 		}
 
 	}
