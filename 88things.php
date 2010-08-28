@@ -12,47 +12,46 @@
 	/*
 		This plugin needs to take care of the following functionality
 			1. Redirect all javascript, css and images to maxcdn
+			2. Cache Pages
 	*/
 
-	class WordPress88 {
+	/*
+		TODO Later
+			1. Create pull zone when activating plugin
+			2. Load files like tinymce via cdn
+	*/
 
-		private $site_url;
-		private $cdn_url;
+	require_once(ABSPATH . 'wp-content/plugins/88things/base.php');
+	require_once(ABSPATH . 'wp-content/plugins/88things/cdn.php');
+	require_once(ABSPATH . 'wp-content/plugins/88things/cache.php');
+
+	class WordPress88 extends Base88 {
 
 		public function __construct() {
-			$this->site_url = str_replace('http://', '', get_bloginfo('wpurl'));
-			$this->cdn_url = 'pvxtindianet.vercingetorixtec.netdna-cdn.com';
+			parent::init();
 		}
 
 		public function init() {
-			$this->useCDN();
+			// Using get_header because init gets called even when using admin
+			add_action('get_header', array($this, 'beforePage'), PHP_INT_MAX);
+			add_action('wp_footer', array($this, 'afterPage'), PHP_INT_MAX);
+
+			$cdn88 = new Cdn88();
+			$cdn88->init();
 		}
 
-		public function display($data) {
-			echo '<pre style="font-size: 12px; background-color: #F7F7F7; border: 1px solid #CECECE; margin: 3px 3px 0px; padding: 6px;">';
-			var_dump($data);
-			echo '</pre>';
+		public function beforePage() {
+			$this->display($_SERVER['REQUEST_URI']);
+			$this->display('starting now', 90);
+			ob_start();
 		}
 
-		private function useCDN() {
-			$this->rewriteJavascript();
-			$this->rewriteCSS();
-		}
+		public function afterPage() {
+			$page = ob_get_contents();
+			ob_end_clean();
+			$this->display('ending now', 90);
 
-		private function rewriteJavascript() {
-			add_action('script_loader_src', array($this, 'filterJavascriptForCDN'));
-		}
-
-		public function filterJavascriptForCDN($url) {
-			return str_replace($this->site_url, $this->cdn_url, $url);
-		}
-
-		private function rewriteCSS() {
-			add_action('style_loader_src', array($this, 'filterCSSForCDN'));
-		}
-
-		public function filterCSSForCDN($url) {
-			return str_replace($this->site_url, $this->cdn_url, $url);
+			echo $page;
 		}
 
 	}
@@ -60,4 +59,3 @@
 	$wordpress88 = new WordPress88();
 	$wordpress88->init();
 
-?>
